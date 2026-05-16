@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  schedule:
+    - cron: '0 2 * * 0'  # Chủ nhật 02:00 UTC - dọn release cũ
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'pnpm'
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Pack Audit ${{ github.ref_name }}'
+          releaseBody: 'Tải file .exe hoặc .msi bên dưới để cài đặt.'
+          releaseDraft: false
+          prerelease: false
+
+  cleanup:
+    if: github.event_name == 'schedule'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Delete releases older than 30 days (keep minimum 5)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const releases = await github.paginate(github.rest.repos.listReleases, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100,
+            });
+
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - 30);
+
+            const sorted = releases.sort((a, b) =>
+              new Date(b.created_at) - new Date(a.created_at)
+            );
+
+            const toDelete = sorted
+              .slice(5)
+              .filter(r => new Date(r.created_at) < cutoff);
+
+            for (const release of toDelete) {
+              console.log(`Deleting: ${release.tag_name} (${release.created_at})`);
+              await github.rest.repos.deleteRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.id,
+              });
+            }
+            console.log(`Deleted ${toDelete.length} old release(s).`);
