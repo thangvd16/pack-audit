@@ -1,9 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-
-export interface CameraDevice {
-	deviceId: string;
-	label: string;
-}
+import { useCallback, useEffect, useState } from "react";
+import type { CameraDevice } from "../types";
 
 export function useCameras() {
 	const [cameras, setCameras] = useState<CameraDevice[]>([]);
@@ -29,8 +25,6 @@ export function useCameras() {
 
 				if (isDenied) throw firstErr;
 
-				// WebView2 first-grant: permission vừa được cấp nhưng stream chưa sẵn sàng
-				// Kiểm tra permission state rồi retry sau 1 giây
 				let permissionGranted = false;
 				try {
 					const status = await navigator.permissions.query({
@@ -38,7 +32,6 @@ export function useCameras() {
 					});
 					permissionGranted = status.state === "granted";
 				} catch {
-					// permissions API không available, cứ retry
 					permissionGranted = true;
 				}
 
@@ -48,14 +41,14 @@ export function useCameras() {
 				stream = await tryGetStream(10000);
 			}
 
-			stream.getTracks().forEach((t) => t.stop());
+			stream.getTracks().forEach((track) => track.stop());
 
 			const devices = await navigator.mediaDevices.enumerateDevices();
 			const videoDevices = devices
-				.filter((d) => d.kind === "videoinput")
-				.map((d, i) => ({
-					deviceId: d.deviceId,
-					label: d.label || `Camera ${i + 1}`,
+				.filter((device) => device.kind === "videoinput")
+				.map((device, index) => ({
+					deviceId: device.deviceId,
+					label: device.label || `Camera ${index + 1}`,
 				}));
 			setCameras(videoDevices);
 		} catch (err) {

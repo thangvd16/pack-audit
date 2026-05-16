@@ -5,8 +5,8 @@
 body {
 	margin: 0;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-	background: #030712;
-	color: #f9fafb;
+	background-color: var(--background);
+	color: var(--foreground);
 }
 
 ::-webkit-scrollbar {
@@ -18,6 +18,6 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-	background: #374151;
+	background: var(--border);
 	border-radius: 2px;
 }

@@ -21,3 +21,60 @@
 		opacity: 0;
 	}
 }
+
+@keyframes splash-logo-in {
+	0% {
+		opacity: 0;
+		transform: scale(0.7);
+		filter: blur(8px);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1);
+		filter: blur(0);
+	}
+}
+
+@keyframes splash-text-in {
+	0% {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes splash-progress-in {
+	0% {
+		opacity: 0;
+		transform: scaleX(0.8);
+	}
+	100% {
+		opacity: 1;
+		transform: scaleX(1);
+	}
+}
+
+@keyframes splash-progress-shimmer {
+	0% {
+		background-position: -200% 0;
+	}
+	100% {
+		background-position: 200% 0;
+	}
+}
+
+@keyframes app-entrance {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
+.app-entrance {
+	animation: app-entrance 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}

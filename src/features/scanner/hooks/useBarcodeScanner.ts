@@ -1,16 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import type { IScannerControls } from "@zxing/browser";
 import { BarcodeFormat } from "@zxing/library";
-
-export interface ScanResult {
-	text: string;
-	format: string;
-	timestamp: number;
-}
+import type { ScanResult } from "../types";
 
 export function useBarcodeScanner(
-	videoRef: React.RefObject<HTMLVideoElement | null>,
+	videoRef: RefObject<HTMLVideoElement | null>,
 	deviceId: string | null,
 	onScan: (result: ScanResult) => void,
 	cooldownMs = 2000,

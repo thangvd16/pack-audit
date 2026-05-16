@@ -3,3 +3,27 @@
 @import "./styles/theme.css";
 @import "./styles/animations.css";
 @import "./styles/base.css";
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+		/* user-select: none;
+		-webkit-user-select: none; */
+	}
+
+	body {
+		@apply bg-background text-foreground;
+	}
+
+	p,
+	span,
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6,
+	label {
+		cursor: default;
+	}
+}
