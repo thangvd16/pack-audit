@@ -1,0 +1,23 @@
+@theme inline {
+	--animate-scan-line: scan-line 2s ease-in-out infinite;
+	--animate-flash: flash 0.4s ease-out;
+}
+
+@keyframes scan-line {
+	0%,
+	100% {
+		top: 12%;
+	}
+	50% {
+		top: 82%;
+	}
+}
+
+@keyframes flash {
+	0% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+	}
+}
