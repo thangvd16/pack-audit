@@ -1,6 +1,6 @@
 [package]
 name = "pack-audit"
-version = "0.1.2"
+version = "0.1.3"
 description = "Ứng dụng kiểm hàng bằng mã vạch"
 authors = ["you"]
 edition = "2021"
