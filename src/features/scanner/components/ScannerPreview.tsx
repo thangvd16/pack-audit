@@ -8,16 +8,18 @@ interface ScannerPreviewProps {
 	selectedCamera: string | null;
 	scanError: string | null;
 	flash: boolean;
+	fill?: boolean;
 }
 
-export function ScannerPreview({ videoRef, scanning, selectedCamera, scanError, flash }: ScannerPreviewProps) {
+export function ScannerPreview({ videoRef, scanning, selectedCamera, scanError, flash, fill = false }: ScannerPreviewProps) {
 	return (
 		<div
 			className={cn(
-				"relative overflow-hidden rounded-xl border-2 bg-card transition-colors duration-300",
-				flash ? "border-green-400 shadow-lg shadow-green-400/20" : scanning ? "border-primary/40" : "border-border",
+				"relative overflow-hidden rounded-lg border bg-card transition-colors duration-300",
+				fill && "h-full min-h-0",
+				flash ? "border-emerald-400" : scanning ? "border-primary/40" : "border-border",
 			)}
-			style={{ aspectRatio: "16/9" }}
+			style={fill ? undefined : { aspectRatio: "16/9" }}
 		>
 			<video ref={videoRef} className="h-full w-full object-cover" autoPlay playsInline muted />
 
@@ -37,15 +39,15 @@ export function ScannerPreview({ videoRef, scanning, selectedCamera, scanError, 
 
 			{scanning && (
 				<div className="pointer-events-none absolute inset-0">
-					<div className="absolute left-5 right-5 h-px animate-scan-line bg-green-400/80 shadow-sm shadow-green-400" />
-					<div className="absolute left-4 top-4 h-6 w-6 rounded-tl-sm border-l-2 border-t-2 border-green-400" />
-					<div className="absolute right-4 top-4 h-6 w-6 rounded-tr-sm border-r-2 border-t-2 border-green-400" />
-					<div className="absolute bottom-4 left-4 h-6 w-6 rounded-bl-sm border-b-2 border-l-2 border-green-400" />
-					<div className="absolute bottom-4 right-4 h-6 w-6 rounded-br-sm border-b-2 border-r-2 border-green-400" />
+					<div className="absolute left-5 right-5 h-px animate-scan-line bg-emerald-400/80 shadow-sm shadow-emerald-400" />
+					<div className="absolute left-4 top-4 h-6 w-6 rounded-tl-sm border-l-2 border-t-2 border-emerald-400" />
+					<div className="absolute right-4 top-4 h-6 w-6 rounded-tr-sm border-r-2 border-t-2 border-emerald-400" />
+					<div className="absolute bottom-4 left-4 h-6 w-6 rounded-bl-sm border-b-2 border-l-2 border-emerald-400" />
+					<div className="absolute bottom-4 right-4 h-6 w-6 rounded-br-sm border-b-2 border-r-2 border-emerald-400" />
 				</div>
 			)}
 
-			{flash && <div className="pointer-events-none absolute inset-0 animate-flash bg-green-400/10" />}
+			{flash && <div className="pointer-events-none absolute inset-0 animate-flash bg-emerald-400/10" />}
 		</div>
 	);
 }

@@ -5,6 +5,6 @@
     <key>NSCameraUsageDescription</key>
     <string>Pack Audit cần truy cập camera để quét mã vạch đơn hàng</string>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Pack Audit cần truy cập microphone để ghi hình đóng gói</string>
+    <string>Pack Audit cần truy cập micrô để ghi hình kiểm hàng</string>
 </dict>
 </plist>

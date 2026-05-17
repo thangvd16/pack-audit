@@ -71,7 +71,7 @@ pub fn check_grace_period(last_refresh: u64) -> LicenseStatus {
         return LicenseStatus {
             valid: false,
             needs_refresh: true,
-            message: "Cần kết nối internet để xác minh license".into(),
+            message: "Cần kết nối internet để xác minh bản quyền".into(),
             days_remaining: 0,
         };
     }
@@ -79,7 +79,7 @@ pub fn check_grace_period(last_refresh: u64) -> LicenseStatus {
     LicenseStatus {
         valid: true,
         needs_refresh: true,
-        message: format!("Offline — còn {} ngày grace", days),
+        message: format!("Có thể dùng ngoại tuyến thêm {} ngày", days),
         days_remaining: days,
     }
 }

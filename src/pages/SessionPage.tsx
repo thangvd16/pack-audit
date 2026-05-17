@@ -7,7 +7,7 @@ export function SessionPage() {
 				<PackageCheck className="h-6 w-6 text-muted-foreground" />
 			</div>
 			<div className="space-y-1">
-				<h2 className="text-sm font-semibold text-foreground">Phiên Làm Việc</h2>
+				<h2 className="text-sm font-semibold text-foreground">Phiên làm việc</h2>
 				<p className="text-xs text-muted-foreground">Tính năng đang được phát triển</p>
 			</div>
 		</div>

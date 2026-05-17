@@ -102,7 +102,9 @@ export function LicenseFeature({ onActivated, needsInternet, initialError }: Lic
 					<div className="space-y-1">
 						<h1 className="text-base font-semibold tracking-tight text-foreground">Pack Audit</h1>
 						{(!isRetryMode || !isOnline) && (
-							<p className="text-sm text-muted-foreground">{isRetryMode ? "Cần kết nối internet để xác minh" : "Nhập license key để tiếp tục"}</p>
+							<p className="text-sm text-muted-foreground">
+								{isRetryMode ? "Cần kết nối internet để xác minh" : "Nhập mã bản quyền để tiếp tục"}
+							</p>
 						)}
 					</div>
 				</CardHeader>

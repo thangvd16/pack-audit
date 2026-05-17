@@ -1,7 +1,18 @@
-# Tauri + React + Typescript
+# Pack Audit
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+Desktop app kiểm hàng bằng mã vạch — tự động ghi video bằng chứng khi scan barcode/QR.
 
-## Recommended IDE Setup
+Xem [`docs/README.md`](docs/README.md) để hiểu kiến trúc, quy tắc build và thứ tự triển khai.
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## Dev setup
+
+```bash
+pnpm install
+pnpm tauri dev
+```
+
+## Tech stack
+
+- **Frontend**: React 19 + TypeScript + Vite + TailwindCSS
+- **Backend**: Tauri 2 + Rust + SQLite
+- **Scanner**: Native Rust camera engine + ZBar decoder sidecar + FFmpeg recorder sidecar

@@ -23,8 +23,9 @@ export function LicenseRetryPanel({ isOnline, loading, error, isPermanentError, 
 				)}
 				<p className="text-balance text-sm text-muted-foreground">
 					{loading
-						? "Đang xác minh license…"
-						: error || (isOnline ? "Server từ chối xác minh. Nhập key mới để tiếp tục." : "Không có kết nối internet. Kết nối lại rồi thử lại.")}
+						? "Đang xác minh bản quyền…"
+						: error ||
+							(isOnline ? "Máy chủ từ chối xác minh. Nhập mã bản quyền mới để tiếp tục." : "Không có kết nối internet. Kết nối lại rồi thử lại.")}
 				</p>
 			</div>
 
@@ -33,11 +34,11 @@ export function LicenseRetryPanel({ isOnline, loading, error, isPermanentError, 
 					{isOnline ? (
 						<>
 							<Button className="w-full" onClick={onEnterNewKey}>
-								Nhập key mới
+								Nhập mã mới
 							</Button>
 							{!isPermanentError && (
 								<Button variant="ghost" className="w-full text-xs text-muted-foreground" onClick={onRetryRefresh}>
-									Thử lại bằng key cũ
+									Thử lại bằng mã cũ
 								</Button>
 							)}
 						</>
@@ -47,7 +48,7 @@ export function LicenseRetryPanel({ isOnline, loading, error, isPermanentError, 
 								Thử lại
 							</Button>
 							<Button variant="ghost" className="w-full text-xs text-muted-foreground" onClick={onEnterNewKey}>
-								Nhập key mới
+								Nhập mã mới
 							</Button>
 						</>
 					)}

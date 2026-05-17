@@ -1,0 +1,8 @@
+{
+	"bundle": {
+		"externalBin": ["binaries/pack-audit-decoder", "binaries/ffmpeg"],
+		"resources": {
+			"binaries/*.dll": "binaries/"
+		}
+	}
+}

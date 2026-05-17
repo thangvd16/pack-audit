@@ -7,7 +7,10 @@
 		"dev": "vite",
 		"build": "tsc && vite build",
 		"preview": "vite preview",
+		"test": "vitest run",
+		"test:watch": "vitest",
 		"tauri": "tauri",
+		"sidecars:fetch": "node scripts/fetch-native-sidecars.mjs",
 		"lint": "oxlint src",
 		"lint:fix": "oxlint src --fix",
 		"fmt": "oxfmt . && cargo fmt --manifest-path src-tauri/Cargo.toml",
@@ -18,8 +21,6 @@
 		"@fontsource-variable/geist": "5.2.8",
 		"@tauri-apps/api": "2.11.0",
 		"@tauri-apps/plugin-opener": "2.5.4",
-		"@zxing/browser": "0.2.0",
-		"@zxing/library": "0.23.0",
 		"class-variance-authority": "0.7.1",
 		"clsx": "2.1.1",
 		"lucide-react": "1.16.0",
@@ -41,6 +42,7 @@
 		"sonner": "2.0.7",
 		"tailwindcss": "4.3.0",
 		"typescript": "6.0.3",
-		"vite": "8.0.13"
+		"vite": "8.0.13",
+		"vitest": "4.1.6"
 	}
 }

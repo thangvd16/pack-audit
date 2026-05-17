@@ -1,73 +1,149 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage: ./scripts/release.sh [major|minor|patch]
-# Default: patch
+usage() {
+	echo "Usage: $0 [major|minor|patch|x.y.z]" >&2
+	echo "Default: patch" >&2
+}
 
 BUMP="${1:-patch}"
 
-if [[ "$BUMP" != "major" && "$BUMP" != "minor" && "$BUMP" != "patch" ]]; then
-  echo "Usage: $0 [major|minor|patch]" >&2
-  exit 1
+if [[ "${BUMP}" == "-h" || "${BUMP}" == "--help" ]]; then
+	usage
+	exit 0
 fi
 
-# ── Đọc version hiện tại từ package.json ─────────────────────────────────────
-CURRENT=$(grep '"version"' package.json | head -1 | sed 's/.*"version": "\(.*\)".*/\1/')
-MAJOR=$(echo "$CURRENT" | cut -d. -f1)
-MINOR=$(echo "$CURRENT" | cut -d. -f2)
-PATCH=$(echo "$CURRENT" | cut -d. -f3)
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+cd "${ROOT_DIR}"
 
-case "$BUMP" in
-  major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
-  minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
-  patch) PATCH=$((PATCH + 1)) ;;
-esac
+BRANCH="$(git branch --show-current)"
+if [[ -z "${BRANCH}" ]]; then
+	echo "Current HEAD is detached. Checkout a branch before releasing." >&2
+	exit 1
+fi
 
-VERSION="${MAJOR}.${MINOR}.${PATCH}"
+if [[ -n "$(git status --porcelain)" ]]; then
+	echo "Working tree is not clean. Commit or stash current changes before running release." >&2
+	echo "" >&2
+	git status --short >&2
+	exit 1
+fi
+
+CURRENT="$(node -p "require('./package.json').version")"
+VERSION="$(
+	node -e '
+const current = process.argv[1];
+const bump = process.argv[2];
+
+function fail(message) {
+	console.error(message);
+	process.exit(1);
+}
+
+if (!/^\d+\.\d+\.\d+$/.test(current)) {
+	fail(`Invalid current version: ${current}`);
+}
+
+if (/^\d+\.\d+\.\d+$/.test(bump)) {
+	console.log(bump);
+	process.exit(0);
+}
+
+if (!["major", "minor", "patch"].includes(bump)) {
+	fail("Usage: scripts/release.sh [major|minor|patch|x.y.z]");
+}
+
+const parts = current.split(".").map(Number);
+if (bump === "major") {
+	parts[0] += 1;
+	parts[1] = 0;
+	parts[2] = 0;
+} else if (bump === "minor") {
+	parts[1] += 1;
+	parts[2] = 0;
+} else {
+	parts[2] += 1;
+}
+
+console.log(parts.join("."));
+' "${CURRENT}" "${BUMP}"
+)"
 TAG="v${VERSION}"
 
-echo "→ $CURRENT → $VERSION ($BUMP bump)"
+if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+	echo "Local tag ${TAG} already exists." >&2
+	exit 1
+fi
 
-# ── 1. Bump versions ──────────────────────────────────────────────────────────
+set +e
+git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1
+REMOTE_TAG_STATUS=$?
+set -e
 
-# package.json
-sed -i '' "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" package.json
+if [[ "${REMOTE_TAG_STATUS}" -eq 0 ]]; then
+	echo "Remote tag ${TAG} already exists on origin." >&2
+	exit 1
+elif [[ "${REMOTE_TAG_STATUS}" -ne 2 ]]; then
+	echo "Could not check remote tag ${TAG} on origin." >&2
+	exit 1
+fi
 
-# src-tauri/tauri.conf.json
-sed -i '' "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" src-tauri/tauri.conf.json
+echo "Releasing ${CURRENT} -> ${VERSION} on branch ${BRANCH}"
 
-# src-tauri/Cargo.toml (chỉ dòng version trong [package], không đụng dependency version)
-sed -i '' "s/^version = \"${CURRENT}\"/version = \"${VERSION}\"/" src-tauri/Cargo.toml
+node -e '
+const fs = require("node:fs");
+const version = process.argv[1];
 
-# Cargo.lock: để Cargo tự update khi CI chạy cargo build
+function writeJson(path, update) {
+	const data = JSON.parse(fs.readFileSync(path, "utf8"));
+	update(data);
+	fs.writeFileSync(path, `${JSON.stringify(data, null, "\t")}\n`);
+}
 
-echo "✓ Version bumped to $VERSION in package.json, tauri.conf.json, Cargo.toml"
+writeJson("package.json", (data) => {
+	data.version = version;
+});
 
-# ── 2. Commit version bump ────────────────────────────────────────────────────
+writeJson("src-tauri/tauri.conf.json", (data) => {
+	data.version = version;
+});
 
-git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml
+const cargoPath = "src-tauri/Cargo.toml";
+const cargoToml = fs.readFileSync(cargoPath, "utf8");
+const nextCargoToml = cargoToml.replace(
+	/(\[package\][\s\S]*?\nversion\s*=\s*)"[^"]+"/,
+	`$1"${version}"`,
+);
+
+if (nextCargoToml === cargoToml) {
+	throw new Error("Could not update src-tauri/Cargo.toml package version");
+}
+
+fs.writeFileSync(cargoPath, nextCargoToml);
+' "${VERSION}"
+
+pnpm run build
+pnpm test
+pnpm run lint
+cargo check --manifest-path src-tauri/Cargo.toml
+
+git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml src-tauri/Cargo.lock
+
 if git diff --cached --quiet; then
-  echo "✓ No version changes to commit (already at ${VERSION})"
+	echo "No version files changed; tagging current commit."
 else
-  git commit -m "chore: bump version to ${TAG}"
-  echo "✓ Committed version bump"
+	git commit -m "chore: release ${TAG}"
 fi
 
-# ── 3. Tag ────────────────────────────────────────────────────────────────────
+git tag -a "${TAG}" -m "Release ${TAG}"
 
-if git tag -l | grep -q "^${TAG}$"; then
-  git tag -d "$TAG"
-  echo "✓ Deleted existing local tag $TAG"
-fi
-git tag -a "$TAG" -m "Release ${TAG}"
+git push origin "${BRANCH}"
+git push origin "${TAG}"
 
-echo "✓ Created annotated tag $TAG"
-
-# ── 4. Push ───────────────────────────────────────────────────────────────────
-
-git push
-git push origin "$TAG"
+REPO_PATH="$(git config --get remote.origin.url | sed -E 's#^git@github.com:##; s#^https://github.com/##; s#\.git$##')"
 
 echo ""
-echo "✓ Done! GitHub Actions sẽ tự build và tạo release tại:"
-echo "  https://github.com/thangvd16/pack-audit/releases/tag/${TAG}"
+echo "GitHub Actions release build started:"
+echo "https://github.com/${REPO_PATH}/actions/workflows/release.yml"
+echo "Release tag:"
+echo "https://github.com/${REPO_PATH}/releases/tag/${TAG}"

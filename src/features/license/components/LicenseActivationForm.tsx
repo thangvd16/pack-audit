@@ -28,7 +28,7 @@ export function LicenseActivationForm({ licenseKey, error, loading, showBackButt
 			/>
 			{error && <p className="text-balance text-center text-xs text-destructive">{error}</p>}
 			<Button className="w-full" onClick={onActivate} disabled={loading || !licenseKey.trim()}>
-				{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Kích hoạt key"}
+				{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Kích hoạt mã bản quyền"}
 			</Button>
 			{showBackButton && (
 				<Button variant="ghost" className="w-full text-xs text-muted-foreground" onClick={onBack}>

@@ -1,4 +1,4 @@
-import { ClipboardList, History, PanelLeftClose, PanelLeftOpen, ScanLine, Settings } from "lucide-react";
+import { ClipboardList, PanelLeftClose, PanelLeftOpen, ScanLine, Settings } from "lucide-react";
 import type * as React from "react";
 import {
 	Sidebar,
@@ -15,9 +15,8 @@ import {
 import type { PageType } from "@/types/page.types";
 
 const navItems: { title: string; page: PageType; icon: React.ElementType }[] = [
-	{ title: "Quét mã vạch", page: "scanner", icon: ScanLine },
+	{ title: "Kiểm hàng", page: "workspace", icon: ScanLine },
 	{ title: "Phiên làm việc", page: "session", icon: ClipboardList },
-	{ title: "Lịch sử", page: "history", icon: History },
 	{ title: "Cài đặt", page: "settings", icon: Settings },
 ];
 

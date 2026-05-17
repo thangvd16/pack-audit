@@ -27,7 +27,7 @@ export function ScannerPermissionState({ cameraLoading, cameraError, onRefresh }
 			) : (
 				<Button size="lg" onClick={onRefresh} className="gap-2 px-8">
 					<Camera size={16} />
-					Tìm Camera
+					Tìm camera
 				</Button>
 			)}
 

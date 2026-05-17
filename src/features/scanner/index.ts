@@ -1,2 +1,16 @@
 export { ScannerFeature } from "./ScannerFeature";
-export type { CameraDevice, ScanResult } from "./types";
+export * from "./services/native-scanner.service";
+export type {
+	CameraDevice,
+	ManualCodeInput,
+	NativeScanFormat,
+	NativeScanResult,
+	NativeScannerError,
+	NativeScannerFrameEvent,
+	NativeScannerMetricsEvent,
+	NativeScannerSettings,
+	NativeScannerState,
+	ScanResult,
+	ScannerRecordingInput,
+	ScannerStartInput,
+} from "./types";

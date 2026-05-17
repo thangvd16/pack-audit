@@ -1,0 +1,11 @@
+{
+  "name": "pack-audit-zbar-decoder",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "mchehab-zbar",
+    {
+      "name": "pkgconf",
+      "host": true
+    }
+  ]
+}

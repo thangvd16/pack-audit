@@ -56,7 +56,7 @@ export function useCameras() {
 			const isPermissionDenied = msg.includes("denied") || msg.includes("NotAllowed") || msg.includes("Permission");
 			setError(
 				isPermissionDenied
-					? "Quyền truy cập camera bị từ chối. Vào Settings → Privacy & Security → Camera để cấp quyền."
+					? "Quyền truy cập camera bị từ chối. Vào Cài đặt hệ thống → Quyền riêng tư & Bảo mật → Camera để cấp quyền."
 					: "Không thể kết nối camera. Vui lòng thử lại.",
 			);
 			setCameras([]);

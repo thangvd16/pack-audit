@@ -1,1 +1,1 @@
-export type PageType = "scanner" | "session" | "history" | "settings";
+export type PageType = "workspace" | "session" | "settings";

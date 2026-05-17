@@ -1,78 +1,85 @@
-import { useCallback, useRef, useState } from "react";
-import { AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { CameraSelector } from "./components/CameraSelector";
-import { LastScanCard } from "./components/LastScanCard";
-import { ScanHistoryPanel } from "./components/ScanHistoryPanel";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { X } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { type CaptureRecord, type CaptureSettings, useCaptureController } from "@/features/capture";
+import { ScannerCapturePanel } from "./components/ScannerCapturePanel";
 import { ScannerPermissionState } from "./components/ScannerPermissionState";
-import { ScannerPreview } from "./components/ScannerPreview";
-import { useBarcodeScanner } from "./hooks/useBarcodeScanner";
+import { useCameraPreview } from "./hooks/useCameraPreview";
 import { useCameras } from "./hooks/useCameras";
-import type { ScanResult } from "./types";
 
-export function ScannerFeature() {
+interface ScannerFeatureProps {
+	settings: CaptureSettings;
+	onRecordSaved?: (record: CaptureRecord) => void;
+	onExitScanMode?: () => void;
+}
+
+export function ScannerFeature({ settings, onRecordSaved, onExitScanMode }: ScannerFeatureProps) {
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const [selectedCamera, setSelectedCamera] = useState<string | null>(null);
-	const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
-	const [lastScan, setLastScan] = useState<ScanResult | null>(null);
-	const [flash, setFlash] = useState(false);
 
 	const { cameras, loading: cameraLoading, error: cameraError, initialized, refresh } = useCameras();
+	const capture = useCaptureController({ videoRef, settings, onRecordSaved });
+	const canExitScanMode = capture.state !== "recording" && capture.state !== "saving";
 
-	const handleScan = useCallback((result: ScanResult) => {
-		setLastScan(result);
-		setScanHistory((prev) => [result, ...prev].slice(0, 100));
-		setFlash(true);
-		setTimeout(() => setFlash(false), 600);
-	}, []);
+	useEffect(() => {
+		if (!selectedCamera) return;
+		if (cameras.length === 0) return;
+		if (cameras.some((camera) => camera.deviceId === selectedCamera)) return;
+		setSelectedCamera(null);
+	}, [cameras, selectedCamera]);
 
-	const handleClearHistory = useCallback(() => {
-		setScanHistory([]);
-		setLastScan(null);
-	}, []);
+	useEffect(() => {
+		if (selectedCamera) return;
+		if (cameras.length !== 1) return;
+		setSelectedCamera(cameras[0].deviceId);
+	}, [cameras, selectedCamera]);
 
-	const { scanning, error: scanError } = useBarcodeScanner(videoRef, selectedCamera, handleScan);
+	const handleCameraStreamEnded = useCallback(() => {
+		const stateWhenEnded = capture.state;
+		capture.handleCameraStreamEnded();
+		setSelectedCamera(null);
+		if (stateWhenEnded === "idle") {
+			toast.error("Camera bị ngắt kết nối");
+		}
+		void refresh();
+	}, [capture, refresh]);
 
-	if (!initialized) {
-		return <ScannerPermissionState cameraLoading={cameraLoading} cameraError={cameraError} onRefresh={refresh} />;
-	}
+	const { scanning, error: scanError } = useCameraPreview(videoRef, selectedCamera, handleCameraStreamEnded);
 
 	return (
-		<div className="flex min-h-0 flex-1 gap-4 overflow-hidden p-4">
-			<div className="flex min-w-0 flex-1 flex-col gap-3">
-				<div className="mb-1 flex items-center justify-between">
-					<p className="text-xs text-muted-foreground">Camera trực tiếp</p>
-					<Badge variant={scanning ? "default" : "secondary"} className="gap-1.5 text-[10px]">
-						<span className={cn("h-1.5 w-1.5 rounded-full", scanning ? "animate-pulse bg-green-400" : "bg-muted-foreground")} />
-						{scanning ? "Đang quét" : "Chờ camera"}
-					</Badge>
+		<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden p-2">
+			{onExitScanMode && (
+				<div className="flex shrink-0 items-center justify-between gap-3 rounded-lg border bg-card px-3 py-2">
+					<div className="min-w-0">
+						<p className="truncate text-sm font-semibold text-foreground">Chế độ quét</p>
+						<p className="text-xs text-muted-foreground">Đang quét mã vạch và ghi video kiểm hàng</p>
+					</div>
+					<Button variant="outline" size="sm" onClick={onExitScanMode} disabled={!canExitScanMode}>
+						<X className="size-4" />
+						Thoát quét
+					</Button>
 				</div>
+			)}
 
-				<ScannerPreview videoRef={videoRef} scanning={scanning} selectedCamera={selectedCamera} scanError={scanError} flash={flash} />
-
-				{scanError && (
-					<Alert variant="destructive">
-						<AlertCircle size={16} />
-						<AlertDescription>{scanError}</AlertDescription>
-					</Alert>
-				)}
-
-				<LastScanCard lastScan={lastScan} flash={flash} />
-			</div>
-
-			<div className="flex w-72 shrink-0 flex-col gap-3">
-				<CameraSelector
+			{initialized ? (
+				<ScannerCapturePanel
+					videoRef={videoRef}
+					scanning={scanning}
+					selectedCamera={selectedCamera}
 					cameras={cameras}
 					cameraLoading={cameraLoading}
 					cameraError={cameraError}
-					selectedCamera={selectedCamera}
 					onSelectCamera={setSelectedCamera}
 					onRefresh={refresh}
+					scanError={scanError}
+					flash={false}
+					capture={capture}
+					cameraLocked={capture.state === "recording"}
 				/>
-				<ScanHistoryPanel scanHistory={scanHistory} onClearHistory={handleClearHistory} />
-			</div>
+			) : (
+				<ScannerPermissionState cameraLoading={cameraLoading} cameraError={cameraError} onRefresh={refresh} />
+			)}
 		</div>
 	);
 }

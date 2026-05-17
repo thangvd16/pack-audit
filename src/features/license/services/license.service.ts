@@ -5,7 +5,7 @@ import type { LicenseResolveResult, LicenseStatus, LicenseAppState } from "../ty
 export async function activateLicenseOnline(key: string): Promise<LicenseStatus> {
 	const trimmed = key.trim();
 	if (!trimmed) {
-		throw new Error("License key không hợp lệ");
+		throw new Error("Mã bản quyền không hợp lệ");
 	}
 	return invoke<LicenseStatus>("activate_license_online", { key: trimmed });
 }
